@@ -1,9 +1,14 @@
 package club.lowscore.app.entity;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import club.lowscore.app.genericentity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
@@ -32,6 +37,14 @@ public class Post extends BaseEntity{
 	
 	@Column(name="postDetails", length=500)
 	private String postDetails;
+	
+	@ManyToMany
+	@JoinTable(
+		name="t_post_tag",
+		joinColumns = @JoinColumn(name = "post_id"),
+		inverseJoinColumns = @JoinColumn(name = "tag_id") //The "inverse" term indicates it's the opposite side of the relationship from where you're defining it.
+	)
+	private Set<Tag> tags = new HashSet<>();
 
 	public User getUser() {
 		return user;
@@ -79,6 +92,14 @@ public class Post extends BaseEntity{
 
 	public void setParentQuestionId(Post parentQuestionId) {
 		this.parentQuestionId = parentQuestionId;
+	}
+
+	public Set<Tag> getTags() {
+		return tags;
+	}
+
+	public void setTags(Set<Tag> tags) {
+		this.tags = tags;
 	}
 	
 }
