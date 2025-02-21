@@ -10,17 +10,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import club.lowscore.app.dto.ResponsePost;
 import club.lowscore.app.entity.Post;
 import club.lowscore.app.entity.PostTag;
 import club.lowscore.app.entity.PostType;
 import club.lowscore.app.entity.Tag;
 import club.lowscore.app.entity.User;
+import club.lowscore.app.exception.PostNotFoundException;
 import club.lowscore.app.exception.PostTypeNotFoundException;
 import club.lowscore.app.exception.TagNotFoundException;
 import club.lowscore.app.exception.UserNotFoundException;
@@ -69,11 +72,22 @@ public class PostService {
 			throw new UserNotFoundException("User with id : "+userId+" not found");
 		}
 		
+		if(StringUtil.notEmpty(parentQuestionId)) {
+			Optional<Post> parentPost = postRepository.findById(Long.parseLong(parentQuestionId));
+			if(parentPost.isPresent()) {
+				post.setParentQuestionId(parentPost.get());
+			}else {
+				throw new PostNotFoundException("Post with id : "+parentQuestionId+" not found");
+			}
+		}
+		
+		
 		postRepository.save(post);
 		
 		// Convert the JSON string to a List<Integer> using Jackson
         ObjectMapper objectMapper = new ObjectMapper();
         List<Long> tagIds = new ArrayList<>();
+        if(StringUtil.notEmpty(tagId)) {
         try {
 			tagIds = objectMapper.readValue(tagId, new TypeReference<List<Long>>(){});
 		} catch (JsonMappingException e) {
@@ -83,6 +97,7 @@ public class PostService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+        
 		
 		//Here we will set the postId and tagId in the postTag table
         
@@ -98,6 +113,9 @@ public class PostService {
    		postTag.setPostId(post);
 		
 		postTagRepository.save(postTag);
+
+    	
+       }
        }
        
 		
@@ -118,6 +136,18 @@ public class PostService {
 		pageable = PageRequest.of(0, 10);
 		Page<Post> postPage = postRepository.findAllWithTags(pageable);
 		return postPage.getContent();
+	}
+
+	public List<ResponsePost> getResponseOfQuestion(Post questionPost) {
+		
+		List<Post> responseOfQuestion =  postRepository.findAllByParentQuestionId(questionPost);
+		
+		List<ResponsePost> listResponsePost = new ArrayList<>();
+		for(Post post : responseOfQuestion) {
+			listResponsePost.add(new ResponsePost(post.getId(), post.getUser().getUserName(), post.getPostDetails(), post.getCreateTime(), post.getUser().getId()));
+		}
+		
+		return listResponsePost;
 	}
 	
 //	public List<Post> getAllQuestions(String page, String limit) {

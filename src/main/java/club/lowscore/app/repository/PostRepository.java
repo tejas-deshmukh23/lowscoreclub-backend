@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import club.lowscore.app.entity.Post;
 
@@ -50,5 +51,13 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 //    // Query to fetch full posts with tags
 //    @Query("SELECT DISTINCT p FROM Post p LEFT JOIN FETCH p.tags WHERE p.id IN :ids")
 //    List<Post> findAllWithTagsByIds(List<Long> ids);
+	
+
+
+//	public List<Post> findAllByParentQuestionId(Post questionPost);
+	
+	@Query("SELECT p FROM Post p LEFT JOIN FETCH p.tags WHERE p.parentQuestionId = :questionPost")
+	List<Post> findAllByParentQuestionId(@Param("questionPost") Post questionPost);
+
 
 }
