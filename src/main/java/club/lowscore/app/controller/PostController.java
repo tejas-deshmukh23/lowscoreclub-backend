@@ -1,6 +1,7 @@
 package club.lowscore.app.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,7 +51,7 @@ public class PostController {
 		try {
 			postService.addpost(description, tagId, userId, postTypeId, parentQuestionId);
 			
-			 notificationHandler.sendNotificationToAllUsers("A new post has been added!");
+//			 notificationHandler.sendNotificationToAllUsers("A new post has been added!");
 			
 			return ResponseEntity.ok("Post successfully created");
 		}catch (PostTypeNotFoundException | TagNotFoundException | UserNotFoundException | PostNotFoundException e) {
@@ -86,6 +87,18 @@ public class PostController {
 			return ResponseEntity.ok(posts);
 		}catch(Exception e) {
 			//Handle Unexpected errors
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
+	}
+	
+	//We are creating this function which will return the users which have used the same tags in their posts as the postId which contains that tags
+	@PostMapping("/getUserOfPostWithTags")
+	public ResponseEntity<Set<Long>> getUserOfPostWithTags(String postId){
+		try {
+			Set<Long> userIds = postService.getUserOfPostWithTags(postId);
+			return ResponseEntity.ok(userIds);
+		}catch(Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 		}

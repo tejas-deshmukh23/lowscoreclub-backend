@@ -1,8 +1,10 @@
 package club.lowscore.app.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -148,6 +150,36 @@ public class PostService {
 		}
 		
 		return listResponsePost;
+	}
+
+	//From this function we are returning the users of the post which has the tags same as the post tags which we are passing in this function's argument
+	public Set<Long> getUserOfPostWithTags(String postId) {
+		
+		Optional<Post> post = postRepository.findById(Long.parseLong(postId));
+		
+		if(post.isEmpty()) {
+			throw new PostNotFoundException("Post with id : "+postId+" not found");
+		}
+		
+		List<List<PostTag>> postTagList = new ArrayList<>();
+		Set<Long> uniquePostIds = new HashSet<>();//we are using set because set doesn't stores the duplicate elements
+		Set<Long> uniqueUserIds = new HashSet<>();
+		
+		Set<Tag> tags =  post.get().getTags();
+		for(Tag t : tags) {
+			postTagList.add(postTagRepository.findByTagId(t));
+		}
+		
+		for(List<PostTag> postTags : postTagList ) {
+			for(PostTag postTag : postTags) {
+//				uniquePostIds.add(postTag.getPostId().getId());
+				//instead of taking that post ids we will get directly the userIds to whom we will be sending the notifications
+				uniqueUserIds.add(postTag.getPostId().getUser().getId());
+			}
+		}
+		
+		return uniqueUserIds;
+		
 	}
 	
 //	public List<Post> getAllQuestions(String page, String limit) {
