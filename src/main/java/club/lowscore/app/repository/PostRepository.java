@@ -58,6 +58,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	
 	@Query("SELECT p FROM Post p LEFT JOIN FETCH p.tags WHERE p.parentQuestionId = :questionPost")
 	List<Post> findAllByParentQuestionId(@Param("questionPost") Post questionPost);
+	
 
 
 }

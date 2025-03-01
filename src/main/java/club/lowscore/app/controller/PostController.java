@@ -49,11 +49,12 @@ public class PostController {
 	public ResponseEntity<?> addPost(@RequestParam(required=false) String description,@RequestParam(required=false) String tagId,@RequestParam(required=false) String userId, @RequestParam(required=false) String postTypeId, @RequestParam(required=false) String parentQuestionId){
 		
 		try {
-			postService.addpost(description, tagId, userId, postTypeId, parentQuestionId);
+			
+			Long postId = postService.addpost(description, tagId, userId, postTypeId, parentQuestionId);
 			
 //			 notificationHandler.sendNotificationToAllUsers("A new post has been added!");
 			
-			return ResponseEntity.ok("Post successfully created");
+			return ResponseEntity.ok(postId);
 		}catch (PostTypeNotFoundException | TagNotFoundException | UserNotFoundException | PostNotFoundException e) {
             // Don't handle exceptions here, the GlobalExceptionHandler will take care of it
             throw e; // Just re-throw the exception
@@ -93,12 +94,25 @@ public class PostController {
 	}
 	
 	//We are creating this function which will return the users which have used the same tags in their posts as the postId which contains that tags
-	@PostMapping("/getUserOfPostWithTags")
+	@GetMapping("/getUserOfPostWithTags")
 	public ResponseEntity<Set<Long>> getUserOfPostWithTags(String postId){
 		try {
 			Set<Long> userIds = postService.getUserOfPostWithTags(postId);
 			return ResponseEntity.ok(userIds);
 		}catch(Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
+	}
+	
+	@PostMapping("/getResponsesOfQuestionCount")
+	public ResponseEntity<Integer> getResponsesOfQuestionCount(@RequestBody(required=false) Post questionPost){
+		try {
+			Integer count = postService.getResponsesOfQuestionCount(questionPost);
+			
+			return ResponseEntity.ok(count);
+		}catch(Exception e) {
+			//Handle Unexpected errors
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 		}

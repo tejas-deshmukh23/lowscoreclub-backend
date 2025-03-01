@@ -35,6 +35,7 @@ import club.lowscore.app.repository.PostTypeRepository;
 import club.lowscore.app.repository.TagRepository;
 import club.lowscore.app.repository.UserRepository;
 import club.lowscore.app.util.StringUtil;
+import jakarta.transaction.Transactional;
 
 @Service
 public class PostService {
@@ -54,7 +55,7 @@ public class PostService {
 	@Autowired
 	UserRepository userRepository;
 
-	public void addpost(String description, String tagId, String userId, String postTypeId, String parentQuestionId) {
+	public Long addpost(String description, String tagId, String userId, String postTypeId, String parentQuestionId) {
 		
 		Post post = new Post();
 		post.setPostDetails(description);
@@ -120,7 +121,7 @@ public class PostService {
        }
        }
        
-		
+		return post.getId();
 		
 	}
 
@@ -152,6 +153,7 @@ public class PostService {
 		return listResponsePost;
 	}
 
+	@Transactional
 	//From this function we are returning the users of the post which has the tags same as the post tags which we are passing in this function's argument
 	public Set<Long> getUserOfPostWithTags(String postId) {
 		
@@ -165,7 +167,9 @@ public class PostService {
 		Set<Long> uniquePostIds = new HashSet<>();//we are using set because set doesn't stores the duplicate elements
 		Set<Long> uniqueUserIds = new HashSet<>();
 		
-		Set<Tag> tags =  post.get().getTags();
+		// Lazy loading should work now, as the session is still open
+	    Set<Tag> tags = post.get().getTags();  // This will now be initialized properly
+	    
 		for(Tag t : tags) {
 			postTagList.add(postTagRepository.findByTagId(t));
 		}
@@ -197,5 +201,16 @@ public class PostService {
 //        // Then fetch the complete posts with their tags
 //        return postRepository.findAllWithTagsByIds(postIds.getContent());
 //    }
+	
+public Integer getResponsesOfQuestionCount(Post questionPost) {
+		
+		List<Post> responseOfQuestion =  postRepository.findAllByParentQuestionId(questionPost);
+		
+		
+		
+		Integer count = responseOfQuestion.size();
+		
+		return count;
+	}
 
 }
